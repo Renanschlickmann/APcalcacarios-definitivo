@@ -1,927 +1,527 @@
-let estoqueBranco = 0;
-let estoquePreto = 0;
-
-let entradas = [];
-let saidas = [];
-let servicos = [];
-let clientes = [];
-
-const estoqueBrancoEl = document.getElementById("estoqueBranco");
-const estoquePretoEl = document.getElementById("estoquePreto");
-
-const listaEntradas = document.getElementById("listaEntradas");
-const listaSaidas = document.getElementById("listaSaidas");
-const listaServicos = document.getElementById("listaServicos");
-const listaClientes = document.getElementById("listaClientes");
-
-const totalEntradasEl = document.getElementById("totalEntradas");
-const totalSaidasEl = document.getElementById("totalSaidas");
-const totalServicosEl = document.getElementById("totalServicos");
-const totalComprasEl = document.getElementById("totalCompras");
-const totalVendasEl = document.getElementById("totalVendas");
-const totalValorServicosEl = document.getElementById("totalValorServicos");
-
-function dataAtual() {
-    return new Date().toLocaleString("pt-BR");
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-function normalizarTexto(texto) {
-    return texto
-        .toString()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim();
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    color: #222;
+    padding: 15px;
 }
 
-function converterValor(valor) {
-    if (!valor) return 0;
-
-    return Number(
-        valor
-        .toString()
-        .replace(/\./g, "")
-        .replace(",", ".")
-        .replace(/[^\d.]/g, "")
-    ) || 0;
+header {
+    background: #1e3b20;
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-function formatarDinheiro(valor) {
-    return valor.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    });
+.logo-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
 }
 
-function formatarQtd(valor) {
-    return (Number(valor) || 0).toFixed(2);
+.logo-area img {
+    width: 120px;
+    max-width: 100%;
+    object-fit: contain;
 }
 
-function calcularTotal(item) {
-    return (Number(item.quantidade) || 0) * converterValor(item.valor);
+header h1 {
+    font-size: 28px;
 }
 
-function carregarDados() {
-    const dados = JSON.parse(localStorage.getItem("calcarioSistema"));
+header p {
+    margin-top: 5px;
+    opacity: 0.8;
+}
 
-    if (dados) {
-        estoqueBranco = dados.estoqueBranco || 0;
-        estoquePreto = dados.estoquePreto || 0;
+main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
 
-        entradas = dados.entradas || [];
-        saidas = dados.saidas || [];
-        servicos = dados.servicos || [];
-        clientes = dados.clientes || [];
+.card {
+    background: white;
+    padding: 18px;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
 
-        atualizarEstoque();
-        renderizarListas();
-        renderizarClientes();
+.card h2 {
+    margin-bottom: 15px;
+    color: #0f172a;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+input,
+select,
+button {
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #1d4ed8;
+}
+
+.estoque-box {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.estoque-box div {
+    flex: 1;
+    background: #e2e8f0;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.estoque-box h3 {
+    margin-bottom: 10px;
+}
+
+.estoque-box p {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+ul {
+    list-style: none;
+}
+
+li {
+    background: #f1f5f9;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.backup-alerta {
+    margin-bottom: 15px;
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.backup-botoes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+#btnBackup,
+.btn-importar {
+    background: #16a34a;
+    color: white;
+    padding: 14px;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-weight: bold;
+    border: none;
+    transition: 0.2s;
+}
+
+#btnBackup:hover,
+.btn-importar:hover {
+    background: #15803d;
+}
+
+#inputImportar {
+    display: none;
+}
+
+#btnExcel {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#btnExcel:hover {
+    background: #1d4ed8;
+}
+
+.dica-editar {
+    background: #fef3c7;
+    color: #92400e;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+#btnAbrirExtrato {
+    width: 100%;
+    background: #0f172a;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#btnAbrirExtrato:hover {
+    background: #1e293b;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 999;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+}
+
+.modal.ativo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-conteudo {
+    background: white;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.modal-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#btnFecharExtrato {
+    background: #dc2626;
+    color: white;
+    border: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.abas-extrato {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.aba {
+    flex: 1;
+    background: #e5e7eb;
+    color: #111827;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.aba:hover {
+    background: #d1d5db;
+}
+
+.aba.ativa {
+    background: #1e3b20;
+    color: white;
+}
+
+.conteudo-aba {
+    display: none;
+}
+
+.conteudo-aba.ativo {
+    display: block;
+}
+
+.conteudo-aba h3 {
+    margin-bottom: 12px;
+    color: #0f172a;
+}
+
+.item-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.item-linha > div:first-child {
+    flex: 1;
+}
+
+.botoes-item {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.btn-editar {
+    background: #f59e0b;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.btn-editar:hover {
+    background: #d97706;
+}
+
+.btn-excluir {
+    background: #ff5e00;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.btn-excluir:hover {
+    background: #b91c1c;
+}
+
+footer {
+    text-align: center;
+    margin-top: 30px;
+}
+
+@media (min-width: 768px) {
+    main {
+        max-width: 1200px;
+        margin: auto;
     }
 }
 
-function salvarDados() {
-    const dados = {
-        estoqueBranco,
-        estoquePreto,
-        entradas,
-        saidas,
-        servicos,
-        clientes
-    };
-
-    localStorage.setItem("calcarioSistema", JSON.stringify(dados));
-}
-
-function atualizarEstoque() {
-    estoqueBrancoEl.textContent = formatarQtd(estoqueBranco) + " Ton";
-    estoquePretoEl.textContent = formatarQtd(estoquePreto) + " Ton";
-}
-
-function atualizarTotais() {
-    let totalEntradaQtd = 0;
-    let totalSaidaQtd = 0;
-    let totalServicoQtd = 0;
-
-    let totalCompras = 0;
-    let totalVendas = 0;
-    let totalServicosValor = 0;
-
-    entradas.forEach(item => {
-        totalEntradaQtd += Number(item.quantidade) || 0;
-        totalCompras += calcularTotal(item);
-    });
-
-    saidas.forEach(item => {
-        totalSaidaQtd += Number(item.quantidade) || 0;
-        totalVendas += calcularTotal(item);
-    });
-
-    servicos.forEach(item => {
-        totalServicoQtd += Number(item.quantidade) || 0;
-        totalServicosValor += calcularTotal(item);
-    });
-
-    totalEntradasEl.textContent = formatarQtd(totalEntradaQtd) + " Ton";
-    totalSaidasEl.textContent = formatarQtd(totalSaidaQtd) + " Ton";
-    totalServicosEl.textContent = formatarQtd(totalServicoQtd);
-    totalComprasEl.textContent = formatarDinheiro(totalCompras);
-    totalVendasEl.textContent = formatarDinheiro(totalVendas);
-    totalValorServicosEl.textContent = formatarDinheiro(totalServicosValor);
-}
-
-function renderizarListas() {
-    listaEntradas.innerHTML = "";
-    listaSaidas.innerHTML = "";
-    listaServicos.innerHTML = "";
-
-    entradas.forEach((item, index) => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <div class="item-linha">
-                <div>
-                    <strong>${item.nome}</strong><br>
-                    Calcário ${item.tipo} - ${formatarQtd(item.quantidade)} Ton<br>
-                    Valor unitário: R$ ${item.valor || "0"}<br>
-                    <span class="valor-total">
-                        Total: ${formatarDinheiro(calcularTotal(item))}
-                    </span>
-                    <div class="data-lancamento">
-                        ${item.data || "Sem data"}
-                    </div>
-                </div>
-
-                <div class="botoes-item">
-                    <button class="btn-editar" onclick="editarEntrada(${index})">
-                        editar
-                    </button>
-
-                    <button class="btn-excluir" onclick="excluirEntrada(${index})">
-                        apagar
-                    </button>
-                </div>
-            </div>
-        `;
-
-        listaEntradas.appendChild(li);
-    });
-
-    saidas.forEach((item, index) => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <div class="item-linha">
-                <div>
-                    <strong>${item.nome}</strong><br>
-                    Calcário ${item.tipo} - ${formatarQtd(item.quantidade)} Ton<br>
-                    Valor unitário: R$ ${item.valor || "0"}<br>
-                    <span class="valor-total">
-                        Total: ${formatarDinheiro(calcularTotal(item))}
-                    </span>
-                    <div class="data-lancamento">
-                        ${item.data || "Sem data"}
-                    </div>
-                </div>
-
-                <div class="botoes-item">
-                    <button class="btn-editar" onclick="editarSaida(${index})">
-                        editar
-                    </button>
-
-                    <button class="btn-excluir" onclick="excluirSaida(${index})">
-                        apagar
-                    </button>
-                </div>
-            </div>
-        `;
-
-        listaSaidas.appendChild(li);
-    });
-
-    servicos.forEach((item, index) => {
-        const li = document.createElement("li");
-
-        li.innerHTML = `
-            <div class="item-linha">
-                <div>
-                    <strong>${item.nome}</strong><br>
-                    ${item.tipo} - ${formatarQtd(item.quantidade)}<br>
-                    Valor unitário: R$ ${item.valor || "0"}<br>
-                    <span class="valor-total">
-                        Total: ${formatarDinheiro(calcularTotal(item))}
-                    </span>
-                    <div class="data-lancamento">
-                        ${item.data || "Sem data"}
-                    </div>
-                </div>
-
-                <div class="botoes-item">
-                    <button class="btn-editar" onclick="editarServico(${index})">
-                        editar
-                    </button>
-
-                    <button class="btn-excluir" onclick="excluirServico(${index})">
-                        apagar
-                    </button>
-                </div>
-            </div>
-        `;
-
-        listaServicos.appendChild(li);
-    });
-
-    atualizarTotais();
-}
-
-function renderizarClientes() {
-    listaClientes.innerHTML = "";
-
-    const saidaSelect = document.getElementById("saidaNome");
-    const servicoSelect = document.getElementById("servicoNome");
-
-    saidaSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
-    servicoSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
-
-   const clientesOrdenados = [...clientes].sort((a, b) =>
-    a.nome.localeCompare(b.nome, "pt-BR", {
-        sensitivity: "base"
-    })
-);
-
-clientesOrdenados.forEach((cliente) => {
-
-    const indexOriginal = clientes.findIndex(c =>
-        c.nome === cliente.nome
-    );
-
-    saidaSelect.innerHTML += `
-        <option value="${cliente.nome}">
-            ${cliente.nome}
-        </option>
-    `;
-
-    servicoSelect.innerHTML += `
-        <option value="${cliente.nome}">
-            ${cliente.nome}
-        </option>
-    `;
-
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-        <div class="item-linha">
-            <div>
-                <strong>${cliente.nome}</strong><br>
-                ${cliente.telefone || "Sem telefone"}<br>
-                ${cliente.obs || ""}
-            </div>
-
-            <div class="botoes-item">
-                <button class="btn-editar" onclick="verCliente('${cliente.nome}')">
-                    ver
-                </button>
-
-                <button class="btn-excluir" onclick="apagarCliente(${indexOriginal})">
-                    apagar
-                </button>
-            </div>
-        </div>
-    `;
-
-    listaClientes.appendChild(li);
-});
-}
-
-document.getElementById("formCliente").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const nome = document.getElementById("clienteNome").value.trim();
-    const telefone = document.getElementById("clienteTelefone").value.trim();
-    const obs = document.getElementById("clienteObs").value.trim();
-
-    const existe = clientes.some(cliente =>
-        normalizarTexto(cliente.nome) === normalizarTexto(nome)
-    );
-
-    if (existe) {
-        alert("Cliente já cadastrado!");
-        return;
+@media (max-width: 480px) {
+    .item-linha {
+        flex-direction: column;
+        align-items: stretch;
     }
 
-    clientes.unshift({
-        nome,
-        telefone,
-        obs,
-        data: dataAtual()
-    });
-
-    renderizarClientes();
-    salvarDados();
-
-    this.reset();
-});
-
-function apagarCliente(index) {
-    const confirmar = confirm("Deseja apagar este cliente? Os lançamentos dele não serão apagados.");
-
-    if (!confirmar) return;
-
-    clientes.splice(index, 1);
-
-    renderizarClientes();
-    salvarDados();
-}
-
-document.getElementById("formEntrada").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const nome = document.getElementById("entradaNome").value.trim();
-    const tipo = document.getElementById("entradaTipo").value;
-    const quantidade = Number(document.getElementById("entradaQuantidade").value);
-    const valor = document.getElementById("entradaValor").value.trim();
-
-    if (tipo === "branco") {
-        estoqueBranco += quantidade;
-    } else {
-        estoquePreto += quantidade;
+    .botoes-item {
+        width: 100%;
     }
 
-    entradas.unshift({
-        nome,
-        tipo,
-        quantidade,
-        valor,
-        data: dataAtual()
-    });
-
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-
-    this.reset();
-});
-
-document.getElementById("formSaida").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const nome = document.getElementById("saidaNome").value;
-    const tipo = document.getElementById("saidaTipo").value;
-    const quantidade = Number(document.getElementById("saidaQuantidade").value);
-    const valor = document.getElementById("saidaValor").value.trim();
-
-    if (tipo === "branco") {
-        if (quantidade > estoqueBranco) {
-            alert("Estoque insuficiente!");
-            return;
-        }
-
-        estoqueBranco -= quantidade;
-    } else {
-        if (quantidade > estoquePreto) {
-            alert("Estoque insuficiente!");
-            return;
-        }
-
-        estoquePreto -= quantidade;
+    .btn-editar,
+    .btn-excluir {
+        flex: 1;
     }
 
-    saidas.unshift({
-        nome,
-        tipo,
-        quantidade,
-        valor,
-        data: dataAtual()
-    });
-
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-
-    this.reset();
-});
-
-document.getElementById("formServico").addEventListener("submit", function(e) {
-    e.preventDefault();
-
-    const nome = document.getElementById("servicoNome").value;
-    const tipo = document.getElementById("servicoTipo").value;
-    const quantidade = document.getElementById("servicoQuantidade").value;
-    const valor = document.getElementById("servicoValor").value.trim();
-
-    servicos.unshift({
-        nome,
-        tipo,
-        quantidade,
-        valor,
-        data: dataAtual()
-    });
-
-    renderizarListas();
-    salvarDados();
-
-    this.reset();
-});
-
-function excluirEntrada(index) {
-    const confirmar = confirm("Deseja apagar esta entrada?");
-
-    if (!confirmar) return;
-
-    const item = entradas[index];
-
-    if (item.tipo === "branco") {
-        estoqueBranco -= item.quantidade;
-    } else {
-        estoquePreto -= item.quantidade;
-    }
-
-    entradas.splice(index, 1);
-
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-}
-
-function excluirSaida(index) {
-    const confirmar = confirm("Deseja apagar esta saída?");
-
-    if (!confirmar) return;
-
-    const item = saidas[index];
-
-    if (item.tipo === "branco") {
-        estoqueBranco += item.quantidade;
-    } else {
-        estoquePreto += item.quantidade;
-    }
-
-    saidas.splice(index, 1);
-
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-}
-
-function excluirServico(index) {
-    const confirmar = confirm("Deseja apagar este serviço?");
-
-    if (!confirmar) return;
-
-    servicos.splice(index, 1);
-
-    renderizarListas();
-    salvarDados();
-}
-
-function editarEntrada(index) {
-    const item = entradas[index];
-
-    document.getElementById("entradaNome").value = item.nome;
-    document.getElementById("entradaTipo").value = item.tipo;
-    document.getElementById("entradaQuantidade").value = item.quantidade;
-    document.getElementById("entradaValor").value = item.valor || "";
-
-    if (item.tipo === "branco") {
-        estoqueBranco -= item.quantidade;
-    } else {
-        estoquePreto -= item.quantidade;
-    }
-
-    entradas.splice(index, 1);
-
-    fecharExtrato();
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-
-    document.getElementById("formEntrada").scrollIntoView({ behavior: "smooth" });
-}
-
-function editarSaida(index) {
-    const item = saidas[index];
-
-    document.getElementById("saidaNome").value = item.nome;
-    document.getElementById("saidaTipo").value = item.tipo;
-    document.getElementById("saidaQuantidade").value = item.quantidade;
-    document.getElementById("saidaValor").value = item.valor || "";
-
-    if (item.tipo === "branco") {
-        estoqueBranco += item.quantidade;
-    } else {
-        estoquePreto += item.quantidade;
-    }
-
-    saidas.splice(index, 1);
-
-    fecharExtrato();
-    atualizarEstoque();
-    renderizarListas();
-    salvarDados();
-
-    document.getElementById("formSaida").scrollIntoView({ behavior: "smooth" });
-}
-
-function editarServico(index) {
-    const item = servicos[index];
-
-    document.getElementById("servicoNome").value = item.nome;
-    document.getElementById("servicoTipo").value = item.tipo;
-    document.getElementById("servicoQuantidade").value = item.quantidade;
-    document.getElementById("servicoValor").value = item.valor || "";
-
-    servicos.splice(index, 1);
-
-    fecharExtrato();
-    renderizarListas();
-    salvarDados();
-
-    document.getElementById("formServico").scrollIntoView({ behavior: "smooth" });
-}
-
-function verCliente(nome) {
-    document.getElementById("pesquisaCliente").value = nome;
-    pesquisarCliente();
-}
-
-function limparPesquisaCliente() {
-    document.getElementById("pesquisaCliente").value = "";
-    document.getElementById("resultadoCliente").innerHTML = "";
-}
-
-function pesquisarCliente() {
-    const termo = document.getElementById("pesquisaCliente").value.trim();
-    const resultado = document.getElementById("resultadoCliente");
-
-    resultado.innerHTML = "";
-
-    if (!termo) {
-        alert("Digite o nome do cliente.");
-        return;
-    }
-
-    const termoNormalizado = normalizarTexto(termo);
-
-    const entradasCliente = entradas.filter(item =>
-        normalizarTexto(item.nome).includes(termoNormalizado)
-    );
-
-    const saidasCliente = saidas.filter(item =>
-        normalizarTexto(item.nome).includes(termoNormalizado)
-    );
-
-    const servicosCliente = servicos.filter(item =>
-        normalizarTexto(item.nome).includes(termoNormalizado)
-    );
-
-    const totalEntradasCliente = entradasCliente.reduce((acc, item) => acc + calcularTotal(item), 0);
-    const totalSaidasCliente = saidasCliente.reduce((acc, item) => acc + calcularTotal(item), 0);
-    const totalServicosCliente = servicosCliente.reduce((acc, item) => acc + calcularTotal(item), 0);
-
-    resultado.innerHTML = `
-        <div class="cliente-card">
-            <h3>Resultado para: ${termo}</h3>
-
-            <p><strong>Entradas:</strong> ${entradasCliente.length}</p>
-            <p><strong>Saídas:</strong> ${saidasCliente.length}</p>
-            <p><strong>Serviços:</strong> ${servicosCliente.length}</p>
-
-            <p><strong>Total Entradas:</strong> ${formatarDinheiro(totalEntradasCliente)}</p>
-            <p><strong>Total Saídas:</strong> ${formatarDinheiro(totalSaidasCliente)}</p>
-            <p><strong>Total Serviços:</strong> ${formatarDinheiro(totalServicosCliente)}</p>
-        </div>
-    `;
-
-    function criarBloco(titulo, lista) {
-        let html = `<div class="cliente-info"><h4>${titulo}</h4>`;
-
-        if (lista.length === 0) {
-            html += `<p>Nenhum lançamento encontrado.</p>`;
-        }
-
-        lista.forEach(item => {
-            html += `
-                <p>
-                    <strong>${item.tipo || "Serviço"}</strong> -
-                    ${formatarQtd(item.quantidade)}
-                    <br>
-                    Total: ${formatarDinheiro(calcularTotal(item))}
-                    <br>
-                    <span class="data-lancamento">${item.data || "Sem data"}</span>
-                </p>
-            `;
-        });
-
-        html += `</div>`;
-
-        resultado.innerHTML += html;
-    }
-
-    criarBloco("Entradas", entradasCliente);
-    criarBloco("Saídas", saidasCliente);
-    criarBloco("Serviços", servicosCliente);
-}
-
-document.getElementById("btnPesquisarCliente").addEventListener("click", pesquisarCliente);
-
-document.getElementById("btnBackup").addEventListener("click", function() {
-    const dados = {
-        estoqueBranco,
-        estoquePreto,
-        entradas,
-        saidas,
-        servicos,
-        clientes
-    };
-
-    const json = JSON.stringify(dados, null, 2);
-
-    const blob = new Blob([json], {
-        type: "application/json"
-    });
-
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(blob);
-    link.download = "backup-calcario.json";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
-
-document.getElementById("btnExcel").addEventListener("click", function() {
-    let csv = `TIPO,NOME,CALCARIO_SERVICO,QUANTIDADE,VALOR_UNITARIO,TOTAL,DATA\n`;
-
-    entradas.forEach(item => {
-        csv += `ENTRADA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
-    });
-
-    saidas.forEach(item => {
-        csv += `SAIDA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
-    });
-
-    servicos.forEach(item => {
-        csv += `SERVICO,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
-    });
-
-    const blob = new Blob([csv], {
-        type: "text/csv;charset=utf-8;"
-    });
-
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(blob);
-    link.download = "relatorio-calcario.csv";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-});
-
-document.getElementById("inputImportar").addEventListener("change", function(event) {
-    const arquivo = event.target.files[0];
-
-    if (!arquivo) return;
-
-    const leitor = new FileReader();
-
-    leitor.onload = function(e) {
-        const dados = JSON.parse(e.target.result);
-
-        estoqueBranco = dados.estoqueBranco || 0;
-        estoquePreto = dados.estoquePreto || 0;
-
-        entradas = dados.entradas || [];
-        saidas = dados.saidas || [];
-        servicos = dados.servicos || [];
-        clientes = dados.clientes || [];
-
-        atualizarEstoque();
-        renderizarListas();
-        renderizarClientes();
-        salvarDados();
-
-        alert("Backup importado com sucesso!");
-    };
-
-    leitor.readAsText(arquivo);
-});
-
-const modalExtrato = document.getElementById("modalExtrato");
-const btnAbrirExtrato = document.getElementById("btnAbrirExtrato");
-const btnFecharExtrato = document.getElementById("btnFecharExtrato");
-const btnVoltarExtrato = document.getElementById("btnVoltarExtrato");
-
-function abrirExtrato() {
-    modalExtrato.classList.add("ativo");
-    mostrarAba("entradas");
-    atualizarTotais();
-}
-
-function fecharExtrato() {
-    limparPesquisaCliente();
-    modalExtrato.classList.remove("ativo");
-}
-
-function mostrarAba(nome) {
-    document.querySelectorAll(".conteudo-aba").forEach(aba => {
-        aba.classList.remove("ativo");
-    });
-
-    document.querySelectorAll(".aba").forEach(botao => {
-        botao.classList.remove("ativa");
-    });
-
-    if (nome === "entradas") {
-        document.getElementById("abaEntradas").classList.add("ativo");
-        document.querySelectorAll(".aba")[0].classList.add("ativa");
-    }
-
-    if (nome === "saidas") {
-        document.getElementById("abaSaidas").classList.add("ativo");
-        document.querySelectorAll(".aba")[1].classList.add("ativa");
-    }
-
-    if (nome === "servicos") {
-        document.getElementById("abaServicos").classList.add("ativo");
-        document.querySelectorAll(".aba")[2].classList.add("ativa");
-    }
-
-    if (nome === "clientes") {
-        document.getElementById("abaClientes").classList.add("ativo");
-        document.querySelectorAll(".aba")[3].classList.add("ativa");
+    .abas-extrato {
+        flex-direction: column;
     }
 }
 
-btnAbrirExtrato.addEventListener("click", abrirExtrato);
-btnFecharExtrato.addEventListener("click", fecharExtrato);
-btnVoltarExtrato.addEventListener("click", fecharExtrato);
+#btnImprimirExtrato {
+    width: 100%;
+    background: #374151;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
 
-modalExtrato.addEventListener("click", function(event) {
-    if (event.target === modalExtrato) {
-        fecharExtrato();
+#btnImprimirExtrato:hover {
+    background: #111827;
+}
+
+.resumo-totais {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.resumo-totais div {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.resumo-totais h4 {
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 6px;
+}
+
+.resumo-totais p {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1e3b20;
+}
+
+@media (min-width: 768px) {
+    .resumo-totais {
+        grid-template-columns: repeat(3, 1fr);
     }
-});
+}
 
-document.getElementById("btnImprimirExtrato").addEventListener("click", function() {
-    const dataAtualPdf = new Date().toLocaleDateString("pt-BR");
 
-    let conteudo = `
-        <html>
-        <head>
-            <title>Extrato ApCalcários</title>
+#btnVoltarExtrato {
+    width: 100%;
+    background: #64748b;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    cursor: pointer;
+}
 
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    padding: 20px;
-                    color: #111;
-                }
+#btnVoltarExtrato:hover {
+    background: #475569;
+}
 
-                .botao-voltar {
-                    background: #1e3b20;
-                    color: white;
-                    border: none;
-                    padding: 12px 18px;
-                    border-radius: 8px;
-                    font-size: 16px;
-                    font-weight: bold;
-                    cursor: pointer;
-                    margin-bottom: 20px;
-                }
+#btnImprimirExtrato {
+    width: 100%;
+    background: #374151;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 15px;
+}
 
-                h1 {
-                    text-align: center;
-                    margin-bottom: 5px;
-                }
+#btnImprimirExtrato:hover {
+    background: #111827;
+}
 
-                .data {
-                    text-align: center;
-                    margin-bottom: 25px;
-                    color: #555;
-                }
+.resumo-totais {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+}
 
-                h2 {
-                    background: #1e3b20;
-                    color: white;
-                    padding: 10px;
-                    border-radius: 6px;
-                    margin-top: 25px;
-                }
+.resumo-totais div {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
 
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 10px;
-                    margin-bottom: 20px;
-                }
+.resumo-totais h4 {
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 6px;
+}
 
-                th, td {
-                    border: 1px solid #ccc;
-                    padding: 8px;
-                    text-align: left;
-                    font-size: 14px;
-                }
+.resumo-totais p {
+    font-size: 20px;
+    font-weight: bold;
+    color: #1e3b20;
+}
 
-                th {
-                    background: #f1f5f9;
-                }
+.pesquisa-cliente {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+}
 
-                .rodape {
-                    margin-top: 30px;
-                    text-align: center;
-                    font-size: 12px;
-                    color: #555;
-                }
+.pesquisa-cliente button {
+    background: #1e3b20;
+}
 
-                @media print {
-                    .botao-voltar {
-                        display: none;
-                    }
-                }
-            </style>
-        </head>
+.resultado-cliente {
+    margin-bottom: 18px;
+}
 
-        <body>
-            <button class="botao-voltar" onclick="window.close()">
-                ← Voltar ao sistema
-            </button>
+.resultado-cliente .cliente-card {
+    background: #ecfdf5;
+    border: 1px solid #bbf7d0;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
 
-            <h1>Extrato ApCalcários</h1>
-            <p class="data">Emitido em ${dataAtualPdf}</p>
+.cliente-info {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
 
-            <h2>Resumo</h2>
-            <table>
-                <tr>
-                    <th>Total Entradas</th>
-                    <th>Total Saídas</th>
-                    <th>Total Serviços</th>
-                    <th>Total Compras</th>
-                    <th>Total Vendas</th>
-                    <th>Total Serviços R$</th>
-                </tr>
-                <tr>
-                    <td>${totalEntradasEl.textContent}</td>
-                    <td>${totalSaidasEl.textContent}</td>
-                    <td>${totalServicosEl.textContent}</td>
-                    <td>${totalComprasEl.textContent}</td>
-                    <td>${totalVendasEl.textContent}</td>
-                    <td>${totalValorServicosEl.textContent}</td>
-                </tr>
-            </table>
-    `;
+.valor-total {
+    font-weight: bold;
+    color: #1e3b20;
+}
 
-    function tabela(titulo, lista, nomeColuna) {
-        conteudo += `
-            <h2>${titulo}</h2>
-            <table>
-                <tr>
-                    <th>${nomeColuna}</th>
-                    <th>Tipo</th>
-                    <th>Quantidade</th>
-                    <th>Valor Unitário</th>
-                    <th>Total</th>
-                    <th>Data</th>
-                </tr>
-        `;
+.data-lancamento {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+}
 
-        lista.forEach(item => {
-            conteudo += `
-                <tr>
-                    <td>${item.nome}</td>
-                    <td>${item.tipo}</td>
-                    <td>${formatarQtd(item.quantidade)}</td>
-                    <td>R$ ${item.valor || "0"}</td>
-                    <td>${formatarDinheiro(calcularTotal(item))}</td>
-                    <td>${item.data || "Sem data"}</td>
-                </tr>
-            `;
-        });
-
-        conteudo += `</table>`;
+@media (min-width: 768px) {
+    .resumo-totais {
+        grid-template-columns: repeat(3, 1fr);
     }
 
-    tabela("Entradas", entradas, "Fornecedor");
-    tabela("Saídas", saidas, "Cliente");
-    tabela("Serviços", servicos, "Cliente");
+    .pesquisa-cliente {
+        flex-direction: row;
+    }
 
-    conteudo += `
-        <div class="rodape">
-            © 2026 - feito por Renan Schlickmann Gesser
-        </div>
-
-        </body>
-        </html>
-    `;
-
-    const janela = window.open("", "_blank");
-
-    janela.document.write(conteudo);
-    janela.document.close();
-
-    setTimeout(() => {
-        janela.print();
-    }, 500);
-});
-
-carregarDados();
+    .pesquisa-cliente input {
+        flex: 1;
+    }
+}
