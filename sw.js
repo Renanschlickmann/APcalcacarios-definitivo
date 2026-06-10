@@ -1,4 +1,4 @@
-const CACHE_NAME = "calcario-v8";
+const CACHE_NAME = "calcario-v9";
 
 const urlsToCache = [
     "./",
