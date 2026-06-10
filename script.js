@@ -242,43 +242,54 @@ function renderizarClientes() {
     saidaSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
     servicoSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
 
-    clientes.forEach((cliente, index) => {
-        saidaSelect.innerHTML += `
-            <option value="${cliente.nome}">
-                ${cliente.nome}
-            </option>
-        `;
+   const clientesOrdenados = [...clientes].sort((a, b) =>
+    a.nome.localeCompare(b.nome, "pt-BR", {
+        sensitivity: "base"
+    })
+);
 
-        servicoSelect.innerHTML += `
-            <option value="${cliente.nome}">
-                ${cliente.nome}
-            </option>
-        `;
+clientesOrdenados.forEach((cliente) => {
 
-        const li = document.createElement("li");
+    const indexOriginal = clientes.findIndex(c =>
+        c.nome === cliente.nome
+    );
 
-        li.innerHTML = `
-            <div class="item-linha">
-                <div>
-                    <strong>${cliente.nome}</strong><br>
-                    ${cliente.telefone || "Sem telefone"}<br>
-                    ${cliente.obs || ""}
-                </div>
+    saidaSelect.innerHTML += `
+        <option value="${cliente.nome}">
+            ${cliente.nome}
+        </option>
+    `;
 
-                <div class="botoes-item">
-                    <button class="btn-editar" onclick="verCliente('${cliente.nome}')">
-                        ver
-                    </button>
+    servicoSelect.innerHTML += `
+        <option value="${cliente.nome}">
+            ${cliente.nome}
+        </option>
+    `;
 
-                    <button class="btn-excluir" onclick="apagarCliente(${index})">
-                        apagar
-                    </button>
-                </div>
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+        <div class="item-linha">
+            <div>
+                <strong>${cliente.nome}</strong><br>
+                ${cliente.telefone || "Sem telefone"}<br>
+                ${cliente.obs || ""}
             </div>
-        `;
 
-        listaClientes.appendChild(li);
-    });
+            <div class="botoes-item">
+                <button class="btn-editar" onclick="verCliente('${cliente.nome}')">
+                    ver
+                </button>
+
+                <button class="btn-excluir" onclick="apagarCliente(${indexOriginal})">
+                    apagar
+                </button>
+            </div>
+        </div>
+    `;
+
+    listaClientes.appendChild(li);
+});
 }
 
 document.getElementById("formCliente").addEventListener("submit", function(e) {
