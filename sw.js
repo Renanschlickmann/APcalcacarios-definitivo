@@ -1,36 +1,29 @@
-const CACHE_NAME = "calcario-v10";
-
-const urlsToCache = [
-    "./",
-    "./index.html",
-    "./style.css",
-    "./script.js"
-];
+const CACHE_NAME = "apcalcarios-v2-pagamentos";
+const ARQUIVOS = ["./", "./index.html", "./style.css", "./script.js", "./manifest.json"];
 
 self.addEventListener("install", event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ARQUIVOS)));
+  self.skipWaiting();
+});
 
-    event.waitUntil(
-
-        caches.open(CACHE_NAME)
-        .then(cache => {
-            return cache.addAll(urlsToCache);
-        })
-
-    );
-
+self.addEventListener("activate", event => {
+  event.waitUntil(
+    caches.keys().then(chaves =>
+      Promise.all(chaves.filter(chave => chave !== CACHE_NAME).map(chave => caches.delete(chave)))
+    )
+  );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", event => {
-
-    event.respondWith(
-
-        caches.match(event.request)
-        .then(response => {
-
-            return response || fetch(event.request);
-
-        })
-
-    );
-
+  if (event.request.method !== "GET") return;
+  event.respondWith(
+    fetch(event.request)
+      .then(resposta => {
+        const copia = resposta.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copia));
+        return resposta;
+      })
+      .catch(() => caches.match(event.request).then(cache => cache || caches.match("./index.html")))
+  );
 });

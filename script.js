@@ -61,6 +61,20 @@ function calcularTotal(item) {
     return (Number(item.quantidade) || 0) * converterValor(item.valor);
 }
 
+function statusPagamento(item) {
+    return item.pago === true ? "Pago" : "Não pago";
+}
+
+function alternarPagamento(tipo, index) {
+    const lista = tipo === "saida" ? saidas : servicos;
+    const item = lista[index];
+    if (!item) return;
+
+    item.pago = !item.pago;
+    renderizarListas();
+    salvarDados();
+}
+
 function carregarDados() {
     const dados = JSON.parse(localStorage.getItem("calcarioSistema"));
 
@@ -181,9 +195,16 @@ function renderizarListas() {
                     <div class="data-lancamento">
                         ${item.data || "Sem data"}
                     </div>
+                    <div style="margin-top:8px;font-weight:bold;color:${item.pago ? '#15803d' : '#dc2626'}">
+                        ${item.pago ? '✅ Pago' : '❌ Não pago'}
+                    </div>
                 </div>
 
                 <div class="botoes-item">
+                    <button onclick="alternarPagamento('saida', ${index})" style="background:${item.pago ? '#64748b' : '#16a34a'}">
+                        ${item.pago ? 'Marcar não pago' : 'Marcar pago'}
+                    </button>
+
                     <button class="btn-editar" onclick="editarSaida(${index})">
                         editar
                     </button>
@@ -213,9 +234,16 @@ function renderizarListas() {
                     <div class="data-lancamento">
                         ${item.data || "Sem data"}
                     </div>
+                    <div style="margin-top:8px;font-weight:bold;color:${item.pago ? '#15803d' : '#dc2626'}">
+                        ${item.pago ? '✅ Pago' : '❌ Não pago'}
+                    </div>
                 </div>
 
                 <div class="botoes-item">
+                    <button onclick="alternarPagamento('servico', ${index})" style="background:${item.pago ? '#64748b' : '#16a34a'}">
+                        ${item.pago ? 'Marcar não pago' : 'Marcar pago'}
+                    </button>
+
                     <button class="btn-editar" onclick="editarServico(${index})">
                         editar
                     </button>
@@ -242,54 +270,43 @@ function renderizarClientes() {
     saidaSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
     servicoSelect.innerHTML = `<option value="">Selecione o cliente</option>`;
 
-   const clientesOrdenados = [...clientes].sort((a, b) =>
-    a.nome.localeCompare(b.nome, "pt-BR", {
-        sensitivity: "base"
-    })
-);
+    clientes.forEach((cliente, index) => {
+        saidaSelect.innerHTML += `
+            <option value="${cliente.nome}">
+                ${cliente.nome}
+            </option>
+        `;
 
-clientesOrdenados.forEach((cliente) => {
+        servicoSelect.innerHTML += `
+            <option value="${cliente.nome}">
+                ${cliente.nome}
+            </option>
+        `;
 
-    const indexOriginal = clientes.findIndex(c =>
-        c.nome === cliente.nome
-    );
+        const li = document.createElement("li");
 
-    saidaSelect.innerHTML += `
-        <option value="${cliente.nome}">
-            ${cliente.nome}
-        </option>
-    `;
+        li.innerHTML = `
+            <div class="item-linha">
+                <div>
+                    <strong>${cliente.nome}</strong><br>
+                    ${cliente.telefone || "Sem telefone"}<br>
+                    ${cliente.obs || ""}
+                </div>
 
-    servicoSelect.innerHTML += `
-        <option value="${cliente.nome}">
-            ${cliente.nome}
-        </option>
-    `;
+                <div class="botoes-item">
+                    <button class="btn-editar" onclick="verCliente('${cliente.nome}')">
+                        ver
+                    </button>
 
-    const li = document.createElement("li");
-
-    li.innerHTML = `
-        <div class="item-linha">
-            <div>
-                <strong>${cliente.nome}</strong><br>
-                ${cliente.telefone || "Sem telefone"}<br>
-                ${cliente.obs || ""}
+                    <button class="btn-excluir" onclick="apagarCliente(${index})">
+                        apagar
+                    </button>
+                </div>
             </div>
+        `;
 
-            <div class="botoes-item">
-                <button class="btn-editar" onclick="verCliente('${cliente.nome}')">
-                    ver
-                </button>
-
-                <button class="btn-excluir" onclick="apagarCliente(${indexOriginal})">
-                    apagar
-                </button>
-            </div>
-        </div>
-    `;
-
-    listaClientes.appendChild(li);
-});
+        listaClientes.appendChild(li);
+    });
 }
 
 document.getElementById("formCliente").addEventListener("submit", function(e) {
@@ -390,6 +407,7 @@ document.getElementById("formSaida").addEventListener("submit", function(e) {
         tipo,
         quantidade,
         valor,
+        pago: false,
         data: dataAtual()
     });
 
@@ -413,6 +431,7 @@ document.getElementById("formServico").addEventListener("submit", function(e) {
         tipo,
         quantidade,
         valor,
+        pago: false,
         data: dataAtual()
     });
 
@@ -605,6 +624,7 @@ function pesquisarCliente() {
                     ${formatarQtd(item.quantidade)}
                     <br>
                     Total: ${formatarDinheiro(calcularTotal(item))}
+                    ${Object.prototype.hasOwnProperty.call(item, 'pago') ? `<br><strong style="color:${item.pago ? '#15803d' : '#dc2626'}">${item.pago ? '✅ Pago' : '❌ Não pago'}</strong>` : ''}
                     <br>
                     <span class="data-lancamento">${item.data || "Sem data"}</span>
                 </p>
@@ -650,18 +670,18 @@ document.getElementById("btnBackup").addEventListener("click", function() {
 });
 
 document.getElementById("btnExcel").addEventListener("click", function() {
-    let csv = `TIPO,NOME,CALCARIO_SERVICO,QUANTIDADE,VALOR_UNITARIO,TOTAL,DATA\n`;
+    let csv = `TIPO,NOME,CALCARIO_SERVICO,QUANTIDADE,VALOR_UNITARIO,TOTAL,PAGAMENTO,DATA\n`;
 
     entradas.forEach(item => {
-        csv += `ENTRADA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
+        csv += `ENTRADA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},-,${item.data || ""}\n`;
     });
 
     saidas.forEach(item => {
-        csv += `SAIDA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
+        csv += `SAIDA,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${statusPagamento(item)},${item.data || ""}\n`;
     });
 
     servicos.forEach(item => {
-        csv += `SERVICO,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${item.data || ""}\n`;
+        csv += `SERVICO,${item.nome},${item.tipo},${item.quantidade},${item.valor || 0},${calcularTotal(item)},${statusPagamento(item)},${item.data || ""}\n`;
     });
 
     const blob = new Blob([csv], {
@@ -881,6 +901,7 @@ document.getElementById("btnImprimirExtrato").addEventListener("click", function
                     <th>Quantidade</th>
                     <th>Valor Unitário</th>
                     <th>Total</th>
+                    <th>Pagamento</th>
                     <th>Data</th>
                 </tr>
         `;
@@ -893,6 +914,7 @@ document.getElementById("btnImprimirExtrato").addEventListener("click", function
                     <td>${formatarQtd(item.quantidade)}</td>
                     <td>R$ ${item.valor || "0"}</td>
                     <td>${formatarDinheiro(calcularTotal(item))}</td>
+                    <td>${Object.prototype.hasOwnProperty.call(item, 'pago') ? statusPagamento(item) : '-'}</td>
                     <td>${item.data || "Sem data"}</td>
                 </tr>
             `;
