@@ -1,4 +1,4 @@
-const CACHE_NAME = "apcalcarios-v2-pagamentos";
+const CACHE_NAME = "apcalcarios-v3-pagamentos-ordem-alfabetica";
 const ARQUIVOS = ["./", "./index.html", "./style.css", "./script.js", "./manifest.json"];
 
 self.addEventListener("install", event => {

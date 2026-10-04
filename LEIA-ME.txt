@@ -14,3 +14,10 @@ Alteração incluída:
 - O status fica salvo no navegador e também entra no backup.
 
 Para usar: mantenha todos estes arquivos juntos na mesma pasta.
+
+
+ATUALIZAÇÃO v3 - ORDEM ALFABÉTICA
+- Corrigida a ordem alfabética dos clientes.
+- A lista de clientes, o seletor de Saída e o seletor de Serviços ficam em ordem alfabética.
+- Pago / Não pago continua funcionando.
+- Os dados existentes no aparelho não são apagados.

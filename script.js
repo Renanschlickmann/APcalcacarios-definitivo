@@ -264,6 +264,9 @@ function renderizarListas() {
 function renderizarClientes() {
     listaClientes.innerHTML = "";
 
+    // Mantém os clientes sempre em ordem alfabética, ignorando maiúsculas e acentos.
+    clientes.sort((a, b) => (a.nome || "").localeCompare(b.nome || "", "pt-BR", { sensitivity: "base" }));
+
     const saidaSelect = document.getElementById("saidaNome");
     const servicoSelect = document.getElementById("servicoNome");
 
